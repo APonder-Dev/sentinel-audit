@@ -1,3 +1,11 @@
+# SentinelAudit generated reports
+reports/*.json
+reports/*.md
+!reports/.gitkeep
+!reports/examples/
+!reports/examples/*.json
+!reports/examples/*.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

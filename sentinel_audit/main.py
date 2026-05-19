@@ -13,11 +13,11 @@ console = Console()
 
 
 def run_audit() -> dict:
-    console.print("[bold cyan]Running SentinelAudit v0.1.0...[/bold cyan]")
+    console.print("[bold cyan]Running SentinelAudit v0.1.1...[/bold cyan]")
 
     return {
         "tool": "SentinelAudit",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "system_info": collect_system_info(),
         "network_info": collect_network_info(),
