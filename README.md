@@ -10,7 +10,7 @@ SentinelAudit is intentionally built as a real utility instead of a generic begi
 
 ## Current Version
 
-**v0.1.0** focuses on foundational host auditing:
+**v0.1.1** focuses on foundational host auditing:
 
 - Collect system information
 - Collect hostname and current user
@@ -95,7 +95,7 @@ SentinelAudit currently performs read-only local system checks. It does not expl
 ## Project Status
 
 **Maturity:** Early active development  
-**Release:** v0.1.0 foundation build
+**Release:** v0.1.1 Functional collector integration and report generation improvements.
 
 ## License
 
