@@ -10,15 +10,28 @@ SentinelAudit is intentionally built as a real utility instead of a generic begi
 
 ## Current Version
 
-**v0.1.1** focuses on foundational host auditing:
+**v0.1.2** introduces foundational host auditing and initial security findings analysis:
+
+### Telemetry Collection
 
 - Collect system information
 - Collect hostname and current user
 - Collect IP address
 - Collect listening network ports
 - Collect firewall status
+
+### Reporting
+
 - Export JSON reports
 - Export Markdown reports
+- Structured report generation pipeline
+
+### Security Findings Engine
+
+- Analyze firewall telemetry
+- Generate severity-based findings
+- Generate defensive recommendations
+- Produce assessment-oriented output
 
 ## Tech Stack
 
@@ -34,6 +47,7 @@ sentinel-audit/
 ├── sentinel_audit/
 │   ├── collectors/
 │   ├── reporting/
+│   ├── findings/
 │   └── main.py
 ├── docs/
 ├── reports/
@@ -83,19 +97,21 @@ SentinelAudit currently performs read-only local system checks. It does not expl
 
 ## Roadmap
 
-- Add structured findings with severity levels
+- Expand findings engine coverage
 - Add Windows-specific security policy checks
 - Add Linux hardening checks
 - Add service risk classification
-- Add report timestamps and scan IDs
-- Add test coverage
-- Add GitHub Actions CI
-- Add Docker-based test environment
+- Add scan timestamps and unique scan IDs
+- Add expanded automated test coverage
+- Add report sanitization support
+- Add CLI argument support
+- Add Docker-based testing environment
+- Add CI release validation workflows
 
 ## Project Status
 
 **Maturity:** Early active development  
-**Release:** v0.1.1 Functional collector integration and report generation improvements.
+**Release:** v0.1.2 Added initial findings engine, severity classification, and assessment-oriented reporting capabilities.
 
 ## License
 

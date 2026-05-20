@@ -7,21 +7,27 @@ from sentinel_audit.collectors.network import collect_network_info
 from sentinel_audit.collectors.system_info import collect_system_info
 from sentinel_audit.reporting.json_report import save_json_report
 from sentinel_audit.reporting.markdown_report import save_markdown_report
-
+from sentinel_audit.findings.firewall_findings import analyze_firewall_status
 
 console = Console()
 
 
 def run_audit() -> dict:
-    console.print("[bold cyan]Running SentinelAudit v0.1.1...[/bold cyan]")
+    console.print("[bold cyan]Running SentinelAudit v0.1.2...[/bold cyan]")
+
+    system_info = collect_system_info()
+    network_info = collect_network_info()
+    firewall_status = collect_firewall_status()
+    findings = analyze_firewall_status(firewall_status)
 
     return {
         "tool": "SentinelAudit",
-        "version": "0.1.1",
+        "version": "0.1.2",
         "generated_at": datetime.now().isoformat(timespec="seconds"),
-        "system_info": collect_system_info(),
-        "network_info": collect_network_info(),
-        "firewall_status": collect_firewall_status(),
+        "system_info": system_info,
+        "network_info": network_info,
+        "firewall_status": firewall_status,
+        "findings": findings,
     }
 
 
