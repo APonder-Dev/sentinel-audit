@@ -9,6 +9,7 @@ def save_markdown_report(data: dict, output_path: str) -> None:
     system = data["system_info"]
     network = data["network_info"]
     firewall = data["firewall_status"]
+    findings = data.get("findings", [])
 
     lines = [
         "# SentinelAudit Report",
@@ -44,7 +45,23 @@ def save_markdown_report(data: dict, output_path: str) -> None:
         "```text",
         firewall["details"],
         "```",
+        "",
+        "## Security Findings",
     ]
-
+    
+    if findings:
+        for finding in findings:
+            lines.extend(
+                [
+                    "",
+                    f"### {finding['title']}",
+                    f"- **Severity:** {finding['severity']}",
+                    f"- **Description:** {finding['description']}",
+                    f"- **Recommendation:** {finding['recommendation']}",
+                ]
+            )
+    else:
+        lines.extend(["", "No security findings generated."])
+        
     with path.open("w", encoding="utf-8") as file:
         file.write("\n".join(lines))
