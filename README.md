@@ -1,54 +1,115 @@
 # SentinelAudit
 
-SentinelAudit is a cross-platform endpoint security auditing tool designed to collect host posture data, identify basic hardening gaps, and generate structured reports for defensive security review.
+SentinelAudit is a cross-platform endpoint security auditing and assessment tool designed to collect host posture telemetry, identify basic hardening gaps, and generate structured defensive security reports.
 
-## Why This Project Exists
+The project focuses on practical defensive security engineering, operational visibility, and incremental tooling maturity.
 
-This project is part of a cybersecurity and software development portfolio focused on practical defensive tooling, infrastructure visibility, and documentation-driven engineering.
+---
 
-SentinelAudit is intentionally built as a real utility instead of a generic beginner script. The goal is to demonstrate security-minded automation, clean project structure, and incremental engineering maturity.
+# Why This Project Exists
 
-## Current Version
+SentinelAudit was created as part of a cybersecurity and software development portfolio centered around:
 
-**v0.1.2** introduces foundational host auditing and initial security findings analysis:
+- Defensive security tooling
+- Infrastructure visibility
+- Host auditing
+- Security automation
+- Structured engineering workflows
+- Documentation-driven development
 
-### Telemetry Collection
+The goal is to build a legitimate operational utility instead of a generic beginner project.
+
+SentinelAudit is intentionally designed to evolve incrementally through realistic engineering practices including:
+
+- Feature branching
+- Pull requests
+- Semantic versioning
+- CI/CD validation
+- Automated testing
+- Structured reporting
+- Security findings analysis
+
+---
+
+# Current Version
+
+## v0.2.0
+
+SentinelAudit v0.2.0 introduces configurable CLI controls, custom report handling, and expanded operational workflow support.
+
+---
+
+# Features
+
+## Telemetry Collection
 
 - Collect system information
 - Collect hostname and current user
-- Collect IP address
+- Collect operating system details
+- Collect architecture and processor information
+- Collect local IP address
 - Collect listening network ports
-- Collect firewall status
+- Collect Windows firewall status
 
-### Reporting
+---
 
-- Export JSON reports
-- Export Markdown reports
-- Structured report generation pipeline
-
-### Security Findings Engine
+## Security Findings Engine
 
 - Analyze firewall telemetry
 - Generate severity-based findings
 - Generate defensive recommendations
-- Produce assessment-oriented output
+- Produce assessment-oriented reporting
+- Identify unsupported or failed telemetry collection states
 
-## Tech Stack
+---
+
+## Reporting
+
+- Export JSON reports
+- Export Markdown reports
+- Generate structured report output
+- Generate findings-oriented assessments
+- Support custom report output paths
+
+---
+
+## CLI Features
+
+- Select report output formats
+- Generate JSON-only reports
+- Generate Markdown-only reports
+- Generate both report formats simultaneously
+- Specify custom output paths
+- Display version information from CLI
+
+---
+
+# Tech Stack
 
 - Python 3.12+
-- Standard library collectors
-- Rich for CLI output
-- JSON and Markdown reporting
+- Python standard library
+- Rich CLI output
+- Pytest
+- Ruff
+- GitHub Actions CI/CD
 
-## Project Structure
+---
+
+# Project Structure
 
 ```text
 sentinel-audit/
+├── .github/
+│   └── workflows/
+│       └── python-ci.yml
+│
 ├── sentinel_audit/
 │   ├── collectors/
-│   ├── reporting/
 │   ├── findings/
+│   ├── reporting/
+│   ├── cli.py
 │   └── main.py
+│
 ├── docs/
 ├── reports/
 ├── tests/
@@ -56,33 +117,96 @@ sentinel-audit/
 └── README.md
 ```
 
-## Installation
+---
+
+# Installation
+
+## Clone Repository
 
 ```bash
 git clone https://github.com/APonder-Dev/sentinel-audit.git
 cd sentinel-audit
+```
+
+---
+
+## Create Virtual Environment
+
+```bash
 python -m venv .venv
 ```
 
-### Windows
+---
+
+## Windows Setup
 
 ```bash
-.venv\\Scripts\\activate
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Linux/macOS
+---
+
+## Linux/macOS Setup
 
 ```bash
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Usage
+---
+
+# Usage
+
+## Default Execution
 
 ```bash
 python -m sentinel_audit.main
 ```
+
+---
+
+## Generate JSON Report Only
+
+```bash
+python -m sentinel_audit.main --format json
+```
+
+---
+
+## Generate Markdown Report Only
+
+```bash
+python -m sentinel_audit.main --format markdown
+```
+
+---
+
+## Generate Both Report Formats
+
+```bash
+python -m sentinel_audit.main --format both
+```
+
+---
+
+## Custom Output Path
+
+```bash
+python -m sentinel_audit.main --output reports/custom-audit
+```
+
+---
+
+## Show Version
+
+```bash
+python -m sentinel_audit.main --version
+```
+
+---
+
+# Example Output Files
 
 Generated reports are saved to:
 
@@ -91,28 +215,99 @@ reports/sentinel-audit-report.json
 reports/sentinel-audit-report.md
 ```
 
-## Security Considerations
+Custom output example:
 
-SentinelAudit currently performs read-only local system checks. It does not exploit, modify, or attack systems. Some collectors may require elevated permissions depending on the operating system and command availability.
+```text
+reports/custom-audit.json
+reports/custom-audit.md
+```
 
-## Roadmap
+---
+
+# Example Security Finding
+
+```json
+{
+  "severity": "informational",
+  "title": "Firewall status collected",
+  "description": "Firewall telemetry was collected successfully.",
+  "recommendation": "Review collected firewall details for profile-specific configuration issues."
+}
+```
+
+---
+
+# Testing
+
+## Run Ruff Linting
+
+```bash
+python -m ruff check .
+```
+
+---
+
+## Run Automated Tests
+
+```bash
+python -m pytest
+```
+
+---
+
+# CI/CD
+
+SentinelAudit includes GitHub Actions CI validation for:
+
+- Ruff linting
+- Pytest execution
+- Multi-version Python validation
+- Pull request validation
+
+---
+
+# Security Considerations
+
+SentinelAudit currently performs read-only local system checks.
+
+The project:
+
+- Does not exploit systems
+- Does not attack networks
+- Does not modify firewall rules
+- Does not perform offensive actions
+
+Some collectors may require elevated permissions depending on the operating system and available system utilities.
+
+---
+
+# Roadmap
+
+## Planned Improvements
 
 - Expand findings engine coverage
-- Add Windows-specific security policy checks
-- Add Linux hardening checks
+- Add Windows security policy auditing
+- Add Linux hardening analysis
 - Add service risk classification
 - Add scan timestamps and unique scan IDs
-- Add expanded automated test coverage
 - Add report sanitization support
-- Add CLI argument support
-- Add Docker-based testing environment
-- Add CI release validation workflows
+- Add export filtering controls
+- Add Docker-based testing environments
+- Add release validation workflows
+- Add plugin-based collector architecture
 
-## Project Status
+---
 
-**Maturity:** Early active development  
-**Release:** v0.1.2 Added initial findings engine, severity classification, and assessment-oriented reporting capabilities.
+# Project Status
 
-## License
+**Maturity:** Early active development
+
+**Release:** v0.2.0
+
+Added configurable CLI controls, custom output handling, expanded workflow flexibility, and improved operational usability.
+
+---
+
+# License
 
 MIT License
