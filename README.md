@@ -33,9 +33,9 @@ SentinelAudit is intentionally designed to evolve incrementally through realisti
 
 # Current Version
 
-## v0.2.0
+## v0.2.1
 
-SentinelAudit v0.2.0 introduces configurable CLI controls, custom report handling, and expanded operational workflow support.
+SentinelAudit v0.2.1 introduces sanitized reporting support for safer report sharing and improved operational security.
 
 ---
 
@@ -70,6 +70,8 @@ SentinelAudit v0.2.0 introduces configurable CLI controls, custom report handlin
 - Generate structured report output
 - Generate findings-oriented assessments
 - Support custom report output paths
+- Support sanitized report generation
+- Redact sensitive host information from exported reports
 
 ---
 
@@ -81,6 +83,7 @@ SentinelAudit v0.2.0 introduces configurable CLI controls, custom report handlin
 - Generate both report formats simultaneously
 - Specify custom output paths
 - Display version information from CLI
+- Generate sanitized reports using --sanitize
 
 ---
 
@@ -206,6 +209,20 @@ python -m sentinel_audit.main --version
 
 ---
 
+## Generate Sanitized Reports
+
+```bash
+python -m sentinel_audit.main --sanitize
+```
+
+Sanitized reports redact sensitive information including:
+
+- Hostname
+- Current user
+- Local IP address
+
+---
+
 # Example Output Files
 
 Generated reports are saved to:
@@ -222,6 +239,13 @@ reports/custom-audit.json
 reports/custom-audit.md
 ```
 
+Sanitized output example:
+
+```text
+reports/sentinel-audit-report.json
+reports/sentinel-audit-report.md
+```
+
 ---
 
 # Example Security Finding
@@ -232,6 +256,16 @@ reports/custom-audit.md
   "title": "Firewall status collected",
   "description": "Firewall telemetry was collected successfully.",
   "recommendation": "Review collected firewall details for profile-specific configuration issues."
+}
+```
+
+# Example Sanitized Output
+
+```json
+{
+  "hostname": "[REDACTED]",
+  "current_user": "[REDACTED]",
+  "ip_address": "[REDACTED]"
 }
 ```
 
@@ -290,7 +324,6 @@ Some collectors may require elevated permissions depending on the operating syst
 - Add Linux hardening analysis
 - Add service risk classification
 - Add scan timestamps and unique scan IDs
-- Add report sanitization support
 - Add export filtering controls
 - Add Docker-based testing environments
 - Add release validation workflows
@@ -302,9 +335,9 @@ Some collectors may require elevated permissions depending on the operating syst
 
 **Maturity:** Early active development
 
-**Release:** v0.2.0
+**Release:** v0.2.1
 
-Added configurable CLI controls, custom output handling, expanded workflow flexibility, and improved operational usability.
+Added sanitized reporting support, sensitive data redaction, and safer report-sharing workflows.
 
 ---
 

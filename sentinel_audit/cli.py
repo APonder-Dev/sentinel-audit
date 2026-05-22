@@ -26,4 +26,10 @@ def parse_args() -> argparse.Namespace:
         help="Show SentinelAudit version and exit.",
     )
     
+    parser.add_argument(
+        "--sanitize",
+        action="store_true",
+        help="Redact sensitive system information from reports.",
+    )
+    
     return parser.parse_args()

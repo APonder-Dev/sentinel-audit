@@ -9,8 +9,9 @@ from sentinel_audit.collectors.system_info import collect_system_info
 from sentinel_audit.findings.firewall_findings import analyze_firewall_status
 from sentinel_audit.reporting.json_report import save_json_report
 from sentinel_audit.reporting.markdown_report import save_markdown_report
+from sentinel_audit.sanitizer import sanitize_report
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 console = Console()
 
 
@@ -38,6 +39,8 @@ def main() -> None:
         console.print(f"SentinelAudit v{VERSION}")
         return
     report = run_audit()
+    if args.sanitize:
+        report = sanitize_report(report)
     if args.format in ["json", "both"]:
         save_json_report(report, f"{args.output}.json")
     if args.format in ["markdown", "both"]:
