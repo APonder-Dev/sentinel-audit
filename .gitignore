@@ -1,3 +1,6 @@
+# Claude Code local config
+.claude/
+
 # SentinelAudit generated reports
 reports/*.json
 reports/*.md
