@@ -1,6 +1,6 @@
 # SentinelAudit
 
-SentinelAudit is a cross-platform endpoint security auditing and assessment tool designed to collect host posture telemetry, identify basic hardening gaps, and generate structured defensive security reports.
+SentinelAudit is a cross-platform endpoint security auditing and assessment tool designed to collect host posture telemetry, identify hardening gaps, and generate structured defensive security reports.
 
 The project focuses on practical defensive security engineering, operational visibility, and incremental tooling maturity.
 
@@ -33,9 +33,9 @@ SentinelAudit is intentionally designed to evolve incrementally through realisti
 
 # Current Version
 
-## v0.2.1
+## v0.3.0
 
-SentinelAudit v0.2.1 introduces sanitized reporting support for safer report sharing and improved operational security.
+SentinelAudit v0.3.0 expands the findings engine and telemetry coverage significantly, adding open port risk analysis, privileged process auditing, disk encryption status checking, and a risk score system.
 
 ---
 
@@ -49,17 +49,67 @@ SentinelAudit v0.2.1 introduces sanitized reporting support for safer report sha
 - Collect architecture and processor information
 - Collect local IP address
 - Collect listening network ports
-- Collect Windows firewall status
+- Collect firewall status (Windows and Linux)
+- Collect running process list with privilege context
+- Collect disk encryption status (BitLocker, FileVault, LUKS)
 
 ---
 
 ## Security Findings Engine
 
 - Analyze firewall telemetry
-- Generate severity-based findings
-- Generate defensive recommendations
+- Analyze listening ports against a known risky port database
+- Analyze privileged process counts (SYSTEM/root)
+- Analyze disk encryption status across platforms
+- Generate severity-based findings (high, medium, low, informational)
+- Generate defensive recommendations per finding
 - Produce assessment-oriented reporting
 - Identify unsupported or failed telemetry collection states
+
+### Risky Port Detection
+
+The findings engine flags the following ports when found listening:
+
+| Port | Service | Severity |
+| --- | --- | --- |
+| 21 | FTP | High |
+| 23 | Telnet | High |
+| 3389 | RDP | High |
+| 4444 | Unknown (Metasploit default) | High |
+| 5900 | VNC | High |
+| 135 | MS-RPC | Medium |
+| 139 | NetBIOS | Medium |
+| 445 | SMB | Medium |
+| 1433 | MSSQL | Medium |
+| 1521 | Oracle DB | Medium |
+| 3306 | MySQL | Medium |
+| 5432 | PostgreSQL | Medium |
+| 6379 | Redis | Medium |
+| 27017 | MongoDB | Medium |
+
+---
+
+## Risk Scoring
+
+SentinelAudit calculates a risk score for each audit run based on the severity of all findings generated.
+
+| Severity | Penalty |
+| --- | --- |
+| High | -20 |
+| Medium | -10 |
+| Low | -5 |
+| Informational | 0 |
+
+Score ratings:
+
+| Score Range | Rating |
+| --- | --- |
+| 90 – 100 | Low Risk |
+| 70 – 89 | Moderate Risk |
+| 50 – 69 | Elevated Risk |
+| 0 – 49 | High Risk |
+
+The risk score is printed to the console after each audit and included in both JSON and Markdown report outputs.
 
 ---
 
@@ -69,6 +119,9 @@ SentinelAudit v0.2.1 introduces sanitized reporting support for safer report sha
 - Export Markdown reports
 - Generate structured report output
 - Generate findings-oriented assessments
+- Include risk score summary in all report formats
+- Include process audit results in all report formats
+- Include disk encryption status in all report formats
 - Support custom report output paths
 - Support sanitized report generation
 - Redact sensitive host information from exported reports
@@ -108,12 +161,24 @@ sentinel-audit/
 │
 ├── sentinel_audit/
 │   ├── collectors/
+│   │   ├── system_info.py
+│   │   ├── network.py
+│   │   ├── firewall.py
+│   │   ├── processes.py
+│   │   └── disk_encryption.py
 │   ├── findings/
+│   │   ├── firewall_findings.py
+│   │   ├── network_findings.py
+│   │   ├── process_findings.py
+│   │   └── disk_encryption_findings.py
 │   ├── reporting/
+│   │   ├── json_report.py
+│   │   └── markdown_report.py
 │   ├── cli.py
-│   └── main.py
+│   ├── main.py
+│   ├── sanitizer.py
+│   └── scoring.py
 │
-├── docs/
 ├── reports/
 ├── tests/
 ├── requirements.txt
@@ -239,27 +304,44 @@ reports/custom-audit.json
 reports/custom-audit.md
 ```
 
-Sanitized output example:
-
-```text
-reports/sentinel-audit-report.json
-reports/sentinel-audit-report.md
-```
-
 ---
 
-# Example Security Finding
+# Example Security Findings
+
+### Risky Port Finding
 
 ```json
 {
-  "severity": "informational",
-  "title": "Firewall status collected",
-  "description": "Firewall telemetry was collected successfully.",
-  "recommendation": "Review collected firewall details for profile-specific configuration issues."
+  "severity": "high",
+  "title": "Risky port open: 3389/RDP",
+  "description": "Port 3389 (RDP) is listening on this host.",
+  "recommendation": "Restrict RDP access to VPN or jump hosts and enable NLA."
 }
 ```
 
-# Example Sanitized Output
+### Disk Encryption Finding
+
+```json
+{
+  "severity": "high",
+  "title": "Disk encryption is not enabled",
+  "description": "Full-disk encryption was not detected on this host.",
+  "recommendation": "Enable full-disk encryption immediately. Use BitLocker on Windows, FileVault on macOS, or LUKS on Linux to protect data at rest."
+}
+```
+
+### Risk Score Output
+
+```json
+{
+  "risk_score": {
+    "score": 60,
+    "label": "Elevated Risk"
+  }
+}
+```
+
+### Sanitized Output
 
 ```json
 {
@@ -287,6 +369,8 @@ python -m ruff check .
 python -m pytest
 ```
 
+29 tests across findings analysis, CLI parsing, sanitization, and risk scoring.
+
 ---
 
 # CI/CD
@@ -295,14 +379,14 @@ SentinelAudit includes GitHub Actions CI validation for:
 
 - Ruff linting
 - Pytest execution
-- Multi-version Python validation
+- Multi-version Python validation (3.11, 3.12, 3.13)
 - Pull request validation
 
 ---
 
 # Security Considerations
 
-SentinelAudit currently performs read-only local system checks.
+SentinelAudit performs read-only local system checks only.
 
 The project:
 
@@ -311,7 +395,7 @@ The project:
 - Does not modify firewall rules
 - Does not perform offensive actions
 
-Some collectors may require elevated permissions depending on the operating system and available system utilities.
+Some collectors may require elevated permissions depending on the operating system and available system utilities. For example, BitLocker status on Windows may require administrator privileges.
 
 ---
 
@@ -319,15 +403,15 @@ Some collectors may require elevated permissions depending on the operating syst
 
 ## Planned Improvements
 
-- Expand findings engine coverage
+- Add HTML report format with visual findings dashboard
 - Add Windows security policy auditing
-- Add Linux hardening analysis
-- Add service risk classification
+- Add Linux hardening analysis (CIS benchmark checks)
 - Add scan timestamps and unique scan IDs
 - Add export filtering controls
 - Add Docker-based testing environments
 - Add release validation workflows
 - Add plugin-based collector architecture
+- Add macOS firewall (pf) support
 
 ---
 
@@ -335,9 +419,9 @@ Some collectors may require elevated permissions depending on the operating syst
 
 **Maturity:** Early active development
 
-**Release:** v0.2.1
+**Release:** v0.3.0
 
-Added sanitized reporting support, sensitive data redaction, and safer report-sharing workflows.
+Added open port risk analysis, privileged process auditing, disk encryption status checking, and a 0-100 risk scoring system across all platforms.
 
 ---
 
