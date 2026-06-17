@@ -6,9 +6,10 @@ from sentinel_audit.cli import parse_args
 def test_default_cli_arguments():
     with patch.object(sys, "argv", ["sentinel-audit"]):
         args = parse_args()
-    assert args.format == "both"
+    assert args.format == "all"
     assert args.output == "reports/sentinel-audit-report"
     assert args.version is False
+    assert args.config is None
 
 def test_json_format_argument():
     with patch.object(sys, "argv", ["sentinel-audit", "--format", "json"]):

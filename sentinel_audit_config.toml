@@ -1,0 +1,85 @@
+# SentinelAudit Port Rules Configuration
+#
+# Define which ports trigger findings and at what severity.
+# This file overrides the built-in defaults when present in your working directory,
+# or when passed via --config.
+#
+# severity options: "high", "medium", "low"
+#
+# To use: place this file in your working directory, or run:
+#   sentinel-audit --config /path/to/sentinel_audit_config.toml
+
+[ports.21]
+severity = "high"
+service = "FTP"
+recommendation = "Disable FTP and migrate to SFTP or SCP for encrypted file transfers."
+
+[ports.22]
+severity = "low"
+service = "SSH"
+recommendation = "Ensure SSH is restricted to key-based auth and specific source IPs."
+
+[ports.23]
+severity = "high"
+service = "Telnet"
+recommendation = "Disable Telnet immediately and use SSH for all remote access."
+
+[ports.135]
+severity = "medium"
+service = "MS-RPC"
+recommendation = "Restrict RPC access via firewall rules to trusted hosts only."
+
+[ports.139]
+severity = "medium"
+service = "NetBIOS"
+recommendation = "Disable NetBIOS over TCP/IP if not required by legacy applications."
+
+[ports.445]
+severity = "medium"
+service = "SMB"
+recommendation = "Restrict SMB to internal trusted networks and apply latest patches."
+
+[ports.1433]
+severity = "medium"
+service = "MSSQL"
+recommendation = "Ensure MSSQL is firewalled and not exposed to untrusted networks."
+
+[ports.1521]
+severity = "medium"
+service = "Oracle DB"
+recommendation = "Ensure Oracle DB is firewalled and not exposed to untrusted networks."
+
+[ports.3306]
+severity = "medium"
+service = "MySQL"
+recommendation = "Ensure MySQL is firewalled and not exposed to untrusted networks."
+
+[ports.3389]
+severity = "high"
+service = "RDP"
+recommendation = "Restrict RDP access to VPN or jump hosts and enable NLA."
+
+[ports.4444]
+severity = "high"
+service = "Unknown (Metasploit default)"
+recommendation = "Investigate this port immediately — 4444 is a common backdoor/C2 port."
+
+[ports.5432]
+severity = "medium"
+service = "PostgreSQL"
+recommendation = "Ensure PostgreSQL is firewalled and not exposed to untrusted networks."
+
+[ports.5900]
+severity = "high"
+service = "VNC"
+recommendation = "Disable VNC or restrict it to localhost/VPN and require authentication."
+
+[ports.6379]
+severity = "medium"
+service = "Redis"
+recommendation = "Ensure Redis is bound to localhost or firewalled from external access."
+
+[ports.27017]
+severity = "medium"
+service = "MongoDB"
+recommendation = "Ensure MongoDB is firewalled and authentication is enforced."

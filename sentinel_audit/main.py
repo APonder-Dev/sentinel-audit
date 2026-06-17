@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 
 from rich.console import Console
@@ -8,16 +9,18 @@ from sentinel_audit.collectors.firewall import collect_firewall_status
 from sentinel_audit.collectors.network import collect_network_info
 from sentinel_audit.collectors.processes import collect_process_info
 from sentinel_audit.collectors.system_info import collect_system_info
+from sentinel_audit.config import load_port_rules
 from sentinel_audit.findings.disk_encryption_findings import analyze_disk_encryption_status
 from sentinel_audit.findings.firewall_findings import analyze_firewall_status
 from sentinel_audit.findings.network_findings import analyze_network_info
 from sentinel_audit.findings.process_findings import analyze_process_info
+from sentinel_audit.reporting.html_report import save_html_report
 from sentinel_audit.reporting.json_report import save_json_report
 from sentinel_audit.reporting.markdown_report import save_markdown_report
 from sentinel_audit.sanitizer import sanitize_report
 from sentinel_audit.scoring import calculate_risk_score
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 console = Console()
 
 _SEVERITY_COLOR = {
@@ -28,18 +31,28 @@ _SEVERITY_COLOR = {
 }
 
 
-def run_audit() -> dict:
+async def _collect_all() -> tuple:
+    return await asyncio.gather(
+        asyncio.to_thread(collect_system_info),
+        asyncio.to_thread(collect_network_info),
+        asyncio.to_thread(collect_firewall_status),
+        asyncio.to_thread(collect_process_info),
+        asyncio.to_thread(collect_disk_encryption_status),
+    )
+
+
+def run_audit(config_path: str | None = None) -> dict:
     console.print(f"[bold cyan]Running SentinelAudit v{VERSION}...[/bold cyan]")
 
-    system_info = collect_system_info()
-    network_info = collect_network_info()
-    firewall_status = collect_firewall_status()
-    process_info = collect_process_info()
-    disk_encryption = collect_disk_encryption_status()
+    port_rules = load_port_rules(config_path)
+
+    system_info, network_info, firewall_status, process_info, disk_encryption = asyncio.run(
+        _collect_all()
+    )
 
     findings = (
         analyze_firewall_status(firewall_status)
-        + analyze_network_info(network_info)
+        + analyze_network_info(network_info, port_rules)
         + analyze_process_info(process_info)
         + analyze_disk_encryption_status(disk_encryption)
     )
@@ -93,7 +106,7 @@ def main() -> None:
         console.print(f"SentinelAudit v{VERSION}")
         return
 
-    report = run_audit()
+    report = run_audit(config_path=args.config)
 
     _print_risk_score(report["risk_score"])
     _print_findings_summary(report["findings"])
@@ -101,17 +114,26 @@ def main() -> None:
     if args.sanitize:
         report = sanitize_report(report)
 
-    if args.format in ["json", "both"]:
-        save_json_report(report, f"{args.output}.json")
-    if args.format in ["markdown", "both"]:
-        save_markdown_report(report, f"{args.output}.md")
+    fmt = args.format
+    saved: list[str] = []
+
+    if fmt in ("json", "all"):
+        path = f"{args.output}.json"
+        save_json_report(report, path)
+        saved.append(path)
+    if fmt in ("markdown", "all"):
+        path = f"{args.output}.md"
+        save_markdown_report(report, path)
+        saved.append(path)
+    if fmt in ("html", "all"):
+        path = f"{args.output}.html"
+        save_html_report(report, path)
+        saved.append(path)
 
     console.print("\n[green]Audit complete.[/green]")
     console.print("Reports saved:")
-    if args.format in ["json", "both"]:
-        console.print(f"  - {args.output}.json")
-    if args.format in ["markdown", "both"]:
-        console.print(f"  - {args.output}.md")
+    for p in saved:
+        console.print(f"  - {p}")
 
 
 if __name__ == "__main__":

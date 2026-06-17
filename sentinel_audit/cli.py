@@ -9,9 +9,9 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument(
         "--format",
-        choices=["json", "markdown", "both"],
-        default="both",
-        help="Report format to generate. Default: both",
+        choices=["json", "markdown", "html", "all"],
+        default="all",
+        help="Report format to generate. Default: all",
     )
 
     parser.add_argument(
@@ -31,5 +31,12 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Redact sensitive system information from reports.",
     )
-    
+
+    parser.add_argument(
+        "--config",
+        default=None,
+        metavar="PATH",
+        help="Path to a TOML config file defining custom port rules. Default: sentinel_audit_config.toml in CWD.",
+    )
+
     return parser.parse_args()
