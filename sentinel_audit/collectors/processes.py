@@ -51,7 +51,7 @@ def _collect_windows() -> dict:
             "details": "",
         }
 
-    except Exception as error:
+    except (OSError, subprocess.SubprocessError, UnicodeError) as error:
         return {
             "status": "error",
             "privileged_count": 0,
@@ -94,7 +94,7 @@ def _collect_unix() -> dict:
             "details": "",
         }
 
-    except Exception as error:
+    except (OSError, subprocess.SubprocessError, UnicodeError) as error:
         return {
             "status": "error",
             "privileged_count": 0,

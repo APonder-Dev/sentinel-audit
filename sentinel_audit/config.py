@@ -1,10 +1,5 @@
-import sys
+import tomllib
 from pathlib import Path
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    raise RuntimeError("Python 3.11+ required for tomllib support")
 
 _DEFAULT_PORT_RULES: dict[int, tuple[str, str, str]] = {
     21:    ("high",   "FTP",                        "Disable FTP and migrate to SFTP or SCP for encrypted file transfers."),
@@ -34,7 +29,7 @@ def load_port_rules(config_path: str | None = None) -> dict[int, tuple[str, str,
     try:
         with path.open("rb") as f:
             data = tomllib.load(f)
-    except Exception:
+    except (OSError, ValueError):
         return dict(_DEFAULT_PORT_RULES)
 
     ports_section = data.get("ports", {})

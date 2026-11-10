@@ -33,9 +33,11 @@ SentinelAudit is intentionally designed to evolve incrementally through realisti
 
 # Current Version
 
-## v0.3.0
+## v0.4.0
 
-SentinelAudit v0.3.0 expands the findings engine and telemetry coverage significantly, adding open port risk analysis, privileged process auditing, disk encryption status checking, and a risk score system.
+SentinelAudit v0.4.0 adds self-contained HTML reports, concurrent telemetry collectors, and configurable port rules through TOML files.
+
+See the [v0.4.0 GitHub release](https://github.com/APonder-Dev/sentinel-audit/releases/tag/v0.4.0) for release notes and source downloads.
 
 ---
 
@@ -52,13 +54,14 @@ SentinelAudit v0.3.0 expands the findings engine and telemetry coverage signific
 - Collect firewall status (Windows and Linux)
 - Collect running process list with privilege context
 - Collect disk encryption status (BitLocker, FileVault, LUKS)
+- Run all five collectors concurrently using `asyncio.gather` and worker threads
 
 ---
 
 ## Security Findings Engine
 
 - Analyze firewall telemetry
-- Analyze listening ports against a known risky port database
+- Analyze listening ports against built-in or custom TOML port rules
 - Analyze privileged process counts (SYSTEM/root)
 - Analyze disk encryption status across platforms
 - Generate severity-based findings (high, medium, low, informational)
@@ -68,7 +71,7 @@ SentinelAudit v0.3.0 expands the findings engine and telemetry coverage signific
 
 ### Risky Port Detection
 
-The findings engine flags the following ports when found listening:
+The built-in rules flag the following ports when found listening. Custom TOML rules can replace this set (see [Custom Port Rules](#custom-port-rules)).
 
 | Port | Service | Severity |
 | --- | --- | --- |
@@ -109,7 +112,7 @@ Score ratings:
 | 50 – 69 | Elevated Risk |
 | 0 – 49 | High Risk |
 
-The risk score is printed to the console after each audit and included in both JSON and Markdown report outputs.
+The risk score is printed to the console after each audit and included in JSON, Markdown, and HTML report outputs.
 
 ---
 
@@ -117,6 +120,7 @@ The risk score is printed to the console after each audit and included in both J
 
 - Export JSON reports
 - Export Markdown reports
+- Export self-contained HTML reports with styled risk scores, severity badges, and summary cards
 - Generate structured report output
 - Generate findings-oriented assessments
 - Include risk score summary in all report formats
@@ -133,16 +137,18 @@ The risk score is printed to the console after each audit and included in both J
 - Select report output formats
 - Generate JSON-only reports
 - Generate Markdown-only reports
-- Generate both report formats simultaneously
+- Generate HTML-only reports
+- Generate all three report formats simultaneously (the default)
+- Load custom port rules using `--config PATH`
 - Specify custom output paths
 - Display version information from CLI
-- Generate sanitized reports using --sanitize
+- Generate sanitized reports using `--sanitize`
 
 ---
 
 # Tech Stack
 
-- Python 3.12+
+- Python 3.11+
 - Python standard library
 - Rich CLI output
 - Pytest
@@ -173,8 +179,10 @@ sentinel-audit/
 │   │   └── disk_encryption_findings.py
 │   ├── reporting/
 │   │   ├── json_report.py
+│   │   ├── html_report.py
 │   │   └── markdown_report.py
 │   ├── cli.py
+│   ├── config.py
 │   ├── main.py
 │   ├── sanitizer.py
 │   └── scoring.py
@@ -182,6 +190,7 @@ sentinel-audit/
 ├── reports/
 ├── tests/
 ├── requirements.txt
+├── sentinel_audit_config.toml
 └── README.md
 ```
 
@@ -226,11 +235,26 @@ pip install -r requirements.txt
 
 # Usage
 
+## CLI Options
+
+| Option | Behavior | Default |
+| --- | --- | --- |
+| `--format {json,markdown,html,all}` | Select report formats | `all` |
+| `--output PATH` | Base output path without an extension | `reports/sentinel-audit-report` |
+| `--config PATH` | Load port rules from a TOML file | `sentinel_audit_config.toml` in the current working directory |
+| `--sanitize` | Redact sensitive host information in exported reports | Off |
+| `--version` | Show the version and exit | Off |
+| `-h`, `--help` | Show CLI help and exit | Off |
+
+**Upgrading from v0.3.0:** `--format both` is no longer supported. Use `--format all` to generate JSON, Markdown, and HTML, or select one format explicitly.
+
 ## Default Execution
 
 ```bash
 python -m sentinel_audit.main
 ```
+
+Generates JSON, Markdown, and HTML reports. Open the generated `.html` file in a browser to view the report.
 
 ---
 
@@ -250,11 +274,42 @@ python -m sentinel_audit.main --format markdown
 
 ---
 
-## Generate Both Report Formats
+## Generate HTML Report Only
 
 ```bash
-python -m sentinel_audit.main --format both
+python -m sentinel_audit.main --format html
 ```
+
+---
+
+## Generate All Report Formats
+
+```bash
+python -m sentinel_audit.main --format all
+```
+
+---
+
+## Custom Port Rules
+
+Use the included `sentinel_audit_config.toml` as a baseline, or specify another TOML file:
+
+```bash
+python -m sentinel_audit.main --config path/to/port-rules.toml
+```
+
+Example rule:
+
+```toml
+[ports.3389]
+severity = "high"
+service = "RDP"
+recommendation = "Restrict RDP access to VPN or jump hosts and enable NLA."
+```
+
+Without `--config`, SentinelAudit looks for `sentinel_audit_config.toml` in the current working directory. Built-in rules are used when the file is missing, cannot be read or parsed, or contains no usable port rules.
+
+Custom rules **replace**, rather than extend, the built-in rule set. Keep all ports you want checked in your configuration. Use `high`, `medium`, `low`, or `informational` for severity.
 
 ---
 
@@ -295,6 +350,7 @@ Generated reports are saved to:
 ```text
 reports/sentinel-audit-report.json
 reports/sentinel-audit-report.md
+reports/sentinel-audit-report.html
 ```
 
 Custom output example:
@@ -302,6 +358,7 @@ Custom output example:
 ```text
 reports/custom-audit.json
 reports/custom-audit.md
+reports/custom-audit.html
 ```
 
 ---
@@ -369,7 +426,7 @@ python -m ruff check .
 python -m pytest
 ```
 
-29 tests across findings analysis, CLI parsing, sanitization, and risk scoring.
+60 tests across findings analysis, CLI parsing, sanitization, risk scoring, collector error handling, and configuration fallbacks.
 
 ---
 
@@ -403,7 +460,6 @@ Some collectors may require elevated permissions depending on the operating syst
 
 ## Planned Improvements
 
-- Add HTML report format with visual findings dashboard
 - Add Windows security policy auditing
 - Add Linux hardening analysis (CIS benchmark checks)
 - Add scan timestamps and unique scan IDs
@@ -419,9 +475,9 @@ Some collectors may require elevated permissions depending on the operating syst
 
 **Maturity:** Early active development
 
-**Release:** v0.3.0
+**Release:** [v0.4.0](https://github.com/APonder-Dev/sentinel-audit/releases/tag/v0.4.0)
 
-Added open port risk analysis, privileged process auditing, disk encryption status checking, and a 0-100 risk scoring system across all platforms.
+Added HTML reporting, concurrent telemetry collection, and configurable TOML port rules alongside existing port risk analysis, privileged process auditing, disk encryption checks, and risk scoring.
 
 ---
 

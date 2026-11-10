@@ -1,4 +1,6 @@
-from sentinel_audit.findings.disk_encryption_findings import analyze_disk_encryption_status
+from sentinel_audit.findings.disk_encryption_findings import (
+    analyze_disk_encryption_status,
+)
 
 
 def test_unsupported_generates_low_finding():

@@ -10,7 +10,9 @@ from sentinel_audit.collectors.network import collect_network_info
 from sentinel_audit.collectors.processes import collect_process_info
 from sentinel_audit.collectors.system_info import collect_system_info
 from sentinel_audit.config import load_port_rules
-from sentinel_audit.findings.disk_encryption_findings import analyze_disk_encryption_status
+from sentinel_audit.findings.disk_encryption_findings import (
+    analyze_disk_encryption_status,
+)
 from sentinel_audit.findings.firewall_findings import analyze_firewall_status
 from sentinel_audit.findings.network_findings import analyze_network_info
 from sentinel_audit.findings.process_findings import analyze_process_info

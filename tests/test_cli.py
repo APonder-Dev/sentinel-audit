@@ -1,5 +1,6 @@
 import sys
 from unittest.mock import patch
+
 from sentinel_audit.cli import parse_args
 
 
