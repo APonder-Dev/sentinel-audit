@@ -1,6 +1,7 @@
 import platform
 import subprocess
 
+
 def collect_firewall_status() -> dict:
     """Collects firewall-related information."""
     system = platform.system().lower()
@@ -29,7 +30,7 @@ def collect_firewall_status() -> dict:
             "details": result.stdout.strip() or result.stderr.strip(),
         }
 
-    except Exception as error:
+    except (OSError, subprocess.SubprocessError, UnicodeError) as error:
         return {
             "status": "error",
             "details": str(error),

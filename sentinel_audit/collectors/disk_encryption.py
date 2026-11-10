@@ -39,7 +39,7 @@ def _collect_windows_bitlocker() -> dict:
             "encrypted": None,
             "details": "manage-bde not found. BitLocker may not be available on this edition of Windows.",
         }
-    except Exception as error:
+    except (OSError, subprocess.SubprocessError, UnicodeError) as error:
         return {"status": "error", "encrypted": None, "details": str(error)}
 
 
@@ -59,7 +59,7 @@ def _collect_macos_filevault() -> dict:
         encrypted = "filevault is on" in output.lower()
         return {"status": "collected", "encrypted": encrypted, "details": output}
 
-    except Exception as error:
+    except (OSError, subprocess.SubprocessError, UnicodeError) as error:
         return {"status": "error", "encrypted": None, "details": str(error)}
 
 
@@ -89,5 +89,5 @@ def _collect_linux_luks() -> dict:
             "encrypted": None,
             "details": "lsblk not found. Unable to determine disk encryption status.",
         }
-    except Exception as error:
+    except (OSError, subprocess.SubprocessError, UnicodeError) as error:
         return {"status": "error", "encrypted": None, "details": str(error)}

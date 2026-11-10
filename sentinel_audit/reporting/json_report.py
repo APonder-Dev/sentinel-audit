@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 def save_json_report(data: dict, output_path: str) -> None:
     """Saves the collected data as a JSON report."""
     path = Path(output_path)

@@ -2,12 +2,13 @@ import platform
 import socket
 import subprocess
 
+
 def get_ip_address() -> str:
     """Get the IP address of the machine."""
     try:
         hostname = socket.gethostname()
         return socket.gethostbyname(hostname)
-    except socket.error:
+    except OSError:
         return "Unable to determine IP address"
 
 
@@ -25,7 +26,7 @@ def get_listening_ports() -> list[str]:
         if result.returncode != 0:
             return [result.stderr.strip() or "Unable to collect listening ports"]
         return result.stdout.splitlines()
-    except Exception as error:
+    except (OSError, subprocess.SubprocessError, UnicodeError) as error:
         return [f"Error collecting listening ports: {error}"]
 
 

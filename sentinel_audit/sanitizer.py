@@ -1,6 +1,5 @@
-from copy import deepcopy
 import re
-
+from copy import deepcopy
 
 IPV4_PATTERN = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
 IPV6_PATTERN = re.compile(r"\[[0-9a-fA-F:]+(?:%\d+)?\]|(?:[0-9a-fA-F]{1,4}:){2,}[0-9a-fA-F:]*")

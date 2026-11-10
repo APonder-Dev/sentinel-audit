@@ -426,7 +426,7 @@ python -m ruff check .
 python -m pytest
 ```
 
-29 tests across findings analysis, CLI parsing, sanitization, and risk scoring.
+60 tests across findings analysis, CLI parsing, sanitization, risk scoring, collector error handling, and configuration fallbacks.
 
 ---
 

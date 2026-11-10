@@ -1,7 +1,6 @@
 import html
 from pathlib import Path
 
-
 _SEVERITY_COLOR = {
     "high":          ("#c0392b", "#fdecea"),
     "medium":        ("#d68910", "#fef9e7"),
