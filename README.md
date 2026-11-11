@@ -33,14 +33,22 @@ SentinelAudit is intentionally designed to evolve incrementally through realisti
 
 # Current Version
 
-Development work for the local dashboard backend is documented in
-[v0.5.0 Backend Foundation](docs/backend-v0.5.0.md).
+## v0.5.0
 
-## v0.4.0
+SentinelAudit v0.5.0 adds a local web dashboard with scan launch, progress,
+history, findings, and structured ports/services views. Windows Deep scans use
+UAC approval and a separate privileged worker while the dashboard stays unelevated.
 
-SentinelAudit v0.4.0 adds self-contained HTML reports, concurrent telemetry collectors, and configurable port rules through TOML files.
+Download stored reports as sanitized-by-default HTML, JSON, or Markdown. Compare
+scans using stable finding IDs and coverage-aware changes. Disk encryption and
+active BitLocker protection are reported separately; unknowns remain explicit.
 
-See the [v0.4.0 GitHub release](https://github.com/APonder-Dev/sentinel-audit/releases/tag/v0.4.0) for release notes and source downloads.
+Start with `python -m sentinel_audit.main --serve` and open
+http://127.0.0.1:8765. Use `--port` to change the local port and `--config` to
+select port rules. Existing CLI scan and export commands remain supported.
+
+See the [v0.5.0 GitHub release](https://github.com/APonder-Dev/sentinel-audit/releases/tag/v0.5.0)
+and [dashboard/API documentation](docs/backend-v0.5.0.md).
 
 ---
 
@@ -478,9 +486,10 @@ Some collectors may require elevated permissions depending on the operating syst
 
 **Maturity:** Early active development
 
-**Release:** [v0.4.0](https://github.com/APonder-Dev/sentinel-audit/releases/tag/v0.4.0)
+**Release:** [v0.5.0](https://github.com/APonder-Dev/sentinel-audit/releases/tag/v0.5.0)
 
-Added HTML reporting, concurrent telemetry collection, and configurable TOML port rules alongside existing port risk analysis, privileged process auditing, disk encryption checks, and risk scoring.
+Added the local dashboard, UAC-approved Deep scans, stored-report exports,
+stable finding IDs, and conservative scan comparison alongside existing CLI auditing.
 
 ---
 

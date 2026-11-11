@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict
 
-from sentinel_audit.audit import run_audit
+from sentinel_audit.audit import VERSION, run_audit
 from sentinel_audit.comparison import compare_scans
 from sentinel_audit.elevation import DeepScanError, ElevationDenied, run_deep_scan
 from sentinel_audit.findings.identity import normalize_findings
@@ -61,7 +61,7 @@ def create_app(db_path: Path | None = None, runner=None, config_path=None, deep_
             lock.close()
 
     app = FastAPI(
-        title="SentinelAudit Local API", version="0.5.0-dev", lifespan=lifespan,
+        title="SentinelAudit Local API", version=VERSION, lifespan=lifespan,
         docs_url=None, redoc_url=None,
     )
     static = Path(__file__).parent / "web"

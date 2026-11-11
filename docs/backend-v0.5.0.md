@@ -1,8 +1,8 @@
-# v0.5.0 Backend Foundation (Development)
+# v0.5.0 Local Dashboard and API
 
-This branch adds a local dashboard and API. Existing CLI scan/export
+This release adds a local dashboard and API. Existing CLI scan/export
 commands still work; the shared engine now produces UTC report timestamps and
-records the effective port rules. The development version is 0.5.0-dev.
+records the effective port rules. The release version is 0.5.0.
 
 ## Start
 
