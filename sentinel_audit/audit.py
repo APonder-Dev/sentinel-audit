@@ -16,7 +16,7 @@ from sentinel_audit.findings.network_findings import analyze_network_info
 from sentinel_audit.findings.process_findings import analyze_process_info
 from sentinel_audit.scoring import calculate_risk_score
 
-VERSION = "0.5.0-dev"
+VERSION = "0.5.0"
 
 
 COLLECTORS = ("system", "network", "firewall", "processes", "disk")

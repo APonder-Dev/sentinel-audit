@@ -19,7 +19,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 REPORT = {
-    "version": "0.5.0-dev",
+    "version": "0.5.0",
     "system_info": {"hostname": "workstation-07", "os": "Windows", "os_release": "11", "architecture": "64bit", "current_user": "analyst"},
     "network_info": {
         "status": "collected", "ip_address": "192.0.2.7",
