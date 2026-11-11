@@ -1,103 +1,33 @@
-import platform
-import subprocess
+import psutil
 
 
 def collect_process_info() -> dict:
-    system = platform.system().lower()
-    if system == "windows":
-        return _collect_windows()
-    elif system in ("linux", "darwin"):
-        return _collect_unix()
-    return {
-        "status": "unsupported",
-        "privileged_count": 0,
-        "privileged_processes": [],
-        "details": "Process collection not supported on this platform.",
+    result = {
+        "status": "collected", "privileged_count": 0, "privileged_processes": [],
+        "process_count": 0, "unknown_owner_count": 0, "details": "", "remediation": "",
     }
-
-
-def _collect_windows() -> dict:
+    privileged = []
     try:
-        result = subprocess.run(
-            ["tasklist", "/fo", "csv", "/nh", "/v"],
-            capture_output=True,
-            text=True,
-            timeout=15,
-            check=False,
-        )
-        if result.returncode != 0:
-            return {
-                "status": "error",
-                "privileged_count": 0,
-                "privileged_processes": [],
-                "details": result.stderr.strip() or "tasklist returned a non-zero exit code.",
-            }
-
-        privileged = []
-        _PRIVILEGED_ACCOUNTS = ("SYSTEM", "NT AUTHORITY", "LOCAL SERVICE", "NETWORK SERVICE")
-
-        for line in result.stdout.splitlines():
-            parts = [p.strip('"') for p in line.strip().split('","')]
-            if len(parts) < 7:
+        for process in psutil.process_iter(["pid", "name", "username"], ad_value=None):
+            info = process.info
+            result["process_count"] += 1
+            user = info.get("username")
+            if not user:
+                result["unknown_owner_count"] += 1
                 continue
-            name, pid, _session_name, _session_num, _mem, _status, user = parts[:7]
-            if any(account in user.upper() for account in _PRIVILEGED_ACCOUNTS):
-                privileged.append({"name": name, "pid": pid, "user": user})
-
-        return {
-            "status": "collected",
-            "privileged_count": len(privileged),
-            "privileged_processes": privileged[:30],
-            "details": "",
-        }
-
-    except (OSError, subprocess.SubprocessError, UnicodeError) as error:
-        return {
-            "status": "error",
-            "privileged_count": 0,
-            "privileged_processes": [],
-            "details": str(error),
-        }
-
-
-def _collect_unix() -> dict:
-    try:
-        result = subprocess.run(
-            ["ps", "aux"],
-            capture_output=True,
-            text=True,
-            timeout=15,
-            check=False,
+            if user.lower() in {"root", "system", "nt authority\\system", "nt authority\\local service", "nt authority\\network service"}:
+                privileged.append({
+                    "name": info.get("name") or "Unknown", "pid": str(info["pid"]), "user": user,
+                })
+    except (psutil.Error, OSError) as error:
+        result.update(status="error", details=f"Process inventory unavailable: {type(error).__name__}: {error}")
+    result["privileged_count"] = len(privileged)
+    result["privileged_processes"] = privileged[:30]
+    if result["status"] != "error" and result["unknown_owner_count"]:
+        result.update(
+            status="partial",
+            details=f"Ownership unavailable for {result['unknown_owner_count']} of {result['process_count']} processes. Privileged counts are a lower bound.",
         )
-        if result.returncode != 0:
-            return {
-                "status": "error",
-                "privileged_count": 0,
-                "privileged_processes": [],
-                "details": result.stderr.strip() or "ps returned a non-zero exit code.",
-            }
-
-        privileged = []
-        for line in result.stdout.splitlines()[1:]:
-            parts = line.split(None, 10)
-            if len(parts) < 11:
-                continue
-            user, pid, command = parts[0], parts[1], parts[10].strip()
-            if user == "root":
-                process_name = command.split()[0] if command else "unknown"
-                privileged.append({"name": process_name, "pid": pid, "user": user})
-
-        return {
-            "status": "collected",
-            "privileged_count": len(privileged),
-            "privileged_processes": privileged[:30],
-            "details": "",
-        }
-
-    except (OSError, subprocess.SubprocessError, UnicodeError) as error:
-        return {
-            "status": "error",
-            "privileged_count": 0,
-            "privileged_processes": [],
-            "details": str(error),
-        }
+    if result["status"] != "collected":
+        result["remediation"] = "Review processes with OS tools and appropriate permissions. Protected or exited processes may remain unavailable."
+    return result

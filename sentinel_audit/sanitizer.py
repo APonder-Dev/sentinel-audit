@@ -44,4 +44,37 @@ def sanitize_report(report: dict) -> dict:
             for line in network["listening_ports"]
         ]
 
-    return sanitized
+    for entry in network.get("inventory", []):
+        entry["address"] = "[REDACTED_IP]"
+    for process in sanitized.get("process_info", {}).get("privileged_processes", []):
+        process["user"] = "[REDACTED]"
+
+    identifiers = {
+        str(value) for value in (
+            report.get("system_info", {}).get("hostname"),
+            report.get("system_info", {}).get("current_user"),
+            *(process.get("user") for process in report.get("process_info", {}).get("privileged_processes", [])),
+        ) if value
+    }
+    identifiers |= {value.rsplit("\\", 1)[-1] for value in identifiers}
+
+    def redact(value, key=""):
+        if key in {"details", "command_line", "cmdline", "executable"}:
+            return "[OMITTED FROM SANITIZED REPORT]"
+        if isinstance(value, dict):
+            return {name: redact(item, name) for name, item in value.items()}
+        if isinstance(value, list):
+            return [redact(item) for item in value]
+        if isinstance(value, str):
+            if key in {"hostname", "current_user", "user", "username", "ip_address", "local_ip", "address"}:
+                return "[REDACTED_IP]" if key == "address" else "[REDACTED]"
+            if key in {"id", "generated_at", "created_at", "started_at", "finished_at"}:
+                return value
+            for identifier in sorted(identifiers, key=len, reverse=True):
+                if len(identifier) >= 3:
+                    value = re.sub(re.escape(identifier), "[REDACTED]", value, flags=re.IGNORECASE)
+            value = re.sub(r"\b(?:\d{6}-){7}\d{6}\b", "[REDACTED_RECOVERY_KEY]", value)
+            return redact_network_identifiers(value)
+        return value
+
+    return redact(sanitized)

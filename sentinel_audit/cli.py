@@ -39,4 +39,9 @@ def parse_args() -> argparse.Namespace:
         help="Path to a TOML config file defining custom port rules. Default: sentinel_audit_config.toml in CWD.",
     )
 
-    return parser.parse_args()
+    parser.add_argument("--serve", action="store_true", help="Start the local dashboard API.")
+    parser.add_argument("--port", type=int, default=8765, help="Local API port (default: 8765).")
+    args = parser.parse_args()
+    if not 1 <= args.port <= 65535:
+        parser.error("--port must be between 1 and 65535")
+    return args

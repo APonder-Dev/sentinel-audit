@@ -29,10 +29,26 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install ruff pytest
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r requirements-dev.txt
       - name: Lint with Ruff
         run: |
           ruff check .
       - name: Run tests
         run: |
           PYTHONPATH=. pytest
+
+  dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dashboard test dependencies
+        run: |
+          pip install -r requirements-browser.txt
+          python -m playwright install --with-deps chromium
+      - name: Test dashboard
+        env:
+          SENTINEL_BROWSER_TESTS: "1"
+        run: python -m pytest tests/browser -q

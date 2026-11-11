@@ -33,6 +33,9 @@ SentinelAudit is intentionally designed to evolve incrementally through realisti
 
 # Current Version
 
+Development work for the local dashboard backend is documented in
+[v0.5.0 Backend Foundation](docs/backend-v0.5.0.md).
+
 ## v0.4.0
 
 SentinelAudit v0.4.0 adds self-contained HTML reports, concurrent telemetry collectors, and configurable port rules through TOML files.
