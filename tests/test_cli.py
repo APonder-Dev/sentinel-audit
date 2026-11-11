@@ -1,6 +1,8 @@
 import sys
 from unittest.mock import patch
 
+import pytest
+
 from sentinel_audit.cli import parse_args
 
 
@@ -30,3 +32,18 @@ def test_version_argument():
     with patch.object(sys, "argv", ["sentinel-audit", "--version"]):
         args = parse_args()
     assert args.version is True
+
+
+def test_serve_arguments():
+    with patch.object(sys, "argv", ["sentinel-audit", "--serve", "--port", "9001"]):
+        args = parse_args()
+    assert args.serve is True
+    assert args.port == 9001
+
+
+def test_invalid_port():
+    with (
+        patch.object(sys, "argv", ["sentinel-audit", "--serve", "--port", "0"]),
+        pytest.raises(SystemExit),
+    ):
+        parse_args()

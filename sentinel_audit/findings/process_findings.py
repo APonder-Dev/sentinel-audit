@@ -6,19 +6,22 @@ def analyze_process_info(process_info: dict) -> list[dict]:
         findings.append({
             "severity": "low",
             "title": "Process auditing not supported on this platform",
+            "id": "SA-PROC-UNSUPPORTED", "collector": "processes", "kind": "gap",
             "description": "SentinelAudit could not audit running processes on this operating system.",
             "recommendation": "Manually review running processes and ensure no unauthorized services are active.",
         })
         return findings
 
-    if status == "error":
+    if status in {"error", "partial", "unknown"}:
         findings.append({
             "severity": "medium",
-            "title": "Process information could not be collected",
-            "description": "SentinelAudit encountered an error while retrieving the running process list.",
+            "title": "Process information is incomplete" if status == "partial" else "Process information could not be collected",
+            "id": "SA-PROC-UNVERIFIED", "collector": "processes", "kind": "gap",
+            "description": process_info.get("details") or "Process ownership could not be fully verified.",
             "recommendation": "Review running processes manually and verify no unauthorized privileged services are active.",
         })
-        return findings
+        if status != "partial":
+            return findings
 
     privileged_count = process_info.get("privileged_count", 0)
     privileged_processes = process_info.get("privileged_processes", [])
@@ -30,6 +33,7 @@ def analyze_process_info(process_info: dict) -> list[dict]:
         findings.append({
             "severity": "medium",
             "title": f"High number of privileged processes detected ({privileged_count})",
+            "id": "SA-PROC-HIGH-COUNT", "collector": "processes", "kind": "risk",
             "description": (
                 f"{privileged_count} processes are running under a high-privilege account "
                 f"(SYSTEM, root, or equivalent).{sample_text}"
@@ -43,6 +47,7 @@ def analyze_process_info(process_info: dict) -> list[dict]:
         findings.append({
             "severity": "informational",
             "title": f"Privileged process audit completed ({privileged_count} found)",
+            "id": "SA-PROC-COUNT", "collector": "processes", "kind": "observation",
             "description": (
                 f"{privileged_count} processes are running under a high-privilege account "
                 f"(SYSTEM, root, or equivalent).{sample_text}"

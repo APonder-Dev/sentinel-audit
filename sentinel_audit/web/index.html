@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>SentinelAudit | Local dashboard</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/assets/dashboard.css">
+  <script defer src="/assets/vendor/lucide.min.js"></script>
+  <script defer src="/assets/dashboard.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <aside class="sidebar">
+    <a class="brand" href="#overview"><span class="brand-mark"><i data-lucide="shield-check"></i></span><span>Sentinel<span class="brand-light">Audit</span><small>ENDPOINT SECURITY</small></span></a>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav aria-label="Main navigation">
+      <a href="#overview" id="nav-overview" aria-label="Overview" title="Overview"><i data-lucide="layout-dashboard"></i><span>Overview</span></a>
+      <a href="#history" id="nav-history" aria-label="Scan history" title="Scan history"><i data-lucide="history"></i><span>Scan history</span></a>
+    </nav>
+    <div class="sidebar-bottom"><div><span class="status-dot"></span> Local workspace</div><small>v0.5.0-dev</small></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><span>Workspace <span class="slash">/</span> <strong id="breadcrumb">Overview</strong></span><span class="connection" id="connection"><span class="status-dot"></span> Connecting</span></header>
+    <main id="main" tabindex="-1">
+      <div class="page-heading">
+        <div><p class="eyebrow">HOST SECURITY</p><h1 id="page-title">Endpoint overview</h1><p class="subtitle" id="page-subtitle">Local audit workspace</p></div>
+        <div class="scan-controls">
+          <label class="select-label">Scan mode<select id="scan-mode"><option value="standard">Standard scan</option><option value="deep" disabled>Deep scan (UAC approval)</option></select></label>
+          <button id="run-scan" class="primary" disabled><i data-lucide="scan-line"></i><span>Run scan</span></button>
+        </div>
+      </div>
+      <div id="error-banner" class="error-banner" role="alert" hidden><i data-lucide="circle-alert"></i><span id="error-text"></span><button id="retry" class="quiet">Retry</button></div>
+      <section id="active-panel" class="active-panel" aria-labelledby="active-title" hidden>
+        <div class="section-heading"><div class="inline"><i data-lucide="radar"></i><h2 id="active-title">Scan in progress</h2></div><a id="active-link" class="text-link" href="#overview">View scan <i data-lucide="arrow-up-right"></i></a></div>
+        <div class="progress-caption"><span id="active-caption">Waiting for collectors</span><span id="active-count" aria-live="polite">0 / 5 finished</span></div>
+        <progress id="scan-progress" max="5" value="0" aria-label="Collectors finished"></progress>
+        <div id="collector-progress" class="collector-progress"></div>
+      </section>
+      <div id="loading" class="empty-state"><i data-lucide="loader-circle" class="spin"></i><h2>Loading workspace</h2></div>
+      <section id="empty" class="empty-state" hidden><span class="empty-icon"><i data-lucide="shield-check"></i></span><p class="eyebrow">READY WHEN YOU ARE</p><h2>No scans yet</h2><p>Your first audit will appear here.</p><button id="first-scan" class="primary"><i data-lucide="scan-line"></i>Run first scan</button></section>
+      <section id="history-view" hidden aria-labelledby="history-title">
+        <div class="section-heading"><h2 id="history-title">All scans <span id="history-count" class="count">0</span></h2><button id="refresh-history" class="icon-button" aria-label="Refresh history" title="Refresh history"><i data-lucide="refresh-cw"></i></button></div>
+        <div class="toolbar">
+          <label class="search"><i data-lucide="search"></i><span class="sr-only">Search history</span><input id="history-query" type="search" maxlength="200" placeholder="Search host or scan ID" autocomplete="off"></label>
+          <label class="select-label">Status<select id="history-status"><option value="">All statuses</option><option value="completed">Completed</option><option value="failed">Failed</option><option value="denied">Approval denied</option><option value="awaiting_approval">Awaiting approval</option><option value="running">Running</option><option value="queued">Queued</option></select></label>
+        </div>
+        <div class="table-scroll"><table class="history-table"><thead><tr><th scope="col">Scan / host</th><th scope="col">Started</th><th scope="col">Status</th><th scope="col">Score</th><th scope="col">Findings</th><th scope="col">Duration</th><th scope="col"><span class="sr-only">Open</span></th></tr></thead><tbody id="history-rows"></tbody></table></div>
+        <p id="history-empty" class="inline-empty" hidden>No scans match your filters.</p>
+        <div class="pagination"><span id="history-range"></span><div class="inline"><button id="previous-page" class="icon-button" aria-label="Previous page" title="Previous page"><i data-lucide="chevron-left"></i></button><button id="next-page" class="icon-button" aria-label="Next page" title="Next page"><i data-lucide="chevron-right"></i></button></div></div>
+      </section>
+      <section id="detail-view" hidden aria-label="Scan details">
+        <div class="scan-meta"><span class="inline"><i data-lucide="monitor"></i><strong id="host-name"></strong><span id="scan-status"></span></span><span class="mono" id="scan-id"></span></div>
+        <div id="export-toolbar" class="toolbar export-toolbar" hidden>
+          <label class="select-label">Report format<select id="export-format"><option value="html">HTML</option><option value="json">JSON</option><option value="markdown">Markdown</option></select></label>
+          <label class="check-label"><input id="export-sanitize" type="checkbox" checked>Sanitized</label>
+          <button id="export-report"><i data-lucide="download"></i>Download report</button>
+          <span class="muted" id="export-note">Raw diagnostics omitted. Review before sharing.</span>
+        </div>
+        <div id="scan-error" class="error-banner" hidden></div>
+        <div id="pending-result" class="inline-empty" hidden>Results will appear when the scan finishes.</div>
+        <div id="report-view" hidden>
+          <section id="coverage-warning" class="coverage-warning" hidden aria-label="Collection gaps">
+            <div class="inline"><i data-lucide="triangle-alert"></i><strong>Incomplete assessment</strong><span id="gap-summary"></span></div>
+            <p>The score reflects observed findings only. Unverified checks are not evidence of protection.</p>
+            <details><summary id="gap-toggle">Collection gaps</summary><div id="gap-list"></div></details>
+          </section>
+          <div class="metrics">
+            <div class="metric"><div class="metric-label">POSTURE SCORE<i data-lucide="shield-check"></i></div><div class="score-line"><strong id="score-value">--</strong><span>/ 100</span></div><p id="score-label"></p><small id="score-confidence">Higher is better</small></div>
+            <div class="metric"><div class="metric-label">HIGH SEVERITY<i data-lucide="triangle-alert"></i></div><strong id="high-value" class="metric-number danger">0</strong><p>Priority findings</p><small id="medium-caption"></small></div>
+            <div class="metric"><div class="metric-label">TOTAL FINDINGS<i data-lucide="list-filter"></i></div><strong id="total-value" class="metric-number">0</strong><div id="severity-bar" class="severity-bar" aria-label="Finding severity distribution"></div><small id="severity-caption"></small></div>
+            <div class="metric"><div class="metric-label">COVERAGE<i data-lucide="layers"></i></div><div class="score-line"><strong id="coverage-value">--</strong><span>/ 5</span></div><p>Checks fully collected</p><small id="coverage-caption"></small></div>
+          </div>
+          <div class="tabs" role="tablist" aria-label="Scan sections">
+            <button role="tab" id="tab-findings" aria-selected="true" aria-controls="panel-findings" data-tab="findings"><i data-lucide="list-checks"></i>Findings <span id="findings-tab-count" class="count">0</span></button>
+            <button role="tab" id="tab-ports" aria-selected="false" aria-controls="panel-ports" data-tab="ports" tabindex="-1"><i data-lucide="network"></i>Ports &amp; services</button>
+            <button role="tab" id="tab-host" aria-selected="false" aria-controls="panel-host" data-tab="host" tabindex="-1"><i data-lucide="monitor"></i>Host details</button>
+            <button role="tab" id="tab-collection" aria-selected="false" aria-controls="panel-collection" data-tab="collection" tabindex="-1"><i data-lucide="database"></i>Collection</button>
+            <button role="tab" id="tab-comparison" aria-selected="false" aria-controls="panel-comparison" data-tab="comparison" tabindex="-1"><i data-lucide="git-compare-arrows"></i>Compare</button>
+          </div>
+          <section id="panel-findings" role="tabpanel" aria-labelledby="tab-findings">
+            <div class="section-heading"><div><h2>Security findings</h2><p class="section-subtitle" id="findings-caption"></p></div></div>
+            <div class="toolbar">
+              <label class="search"><i data-lucide="search"></i><span class="sr-only">Search findings</span><input id="finding-query" type="search" placeholder="Search findings or recommendations" autocomplete="off"></label>
+              <label class="select-label">Severity<select id="finding-severity"><option value="">All severities</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="informational">Informational</option></select></label>
+              <label class="select-label">Sort<select id="finding-sort"><option value="severity">Severity</option><option value="title">Title</option></select></label>
+            </div>
+            <div class="finding-columns"><span>SEVERITY</span><span>FINDING</span></div>
+            <div id="findings-list"></div>
+            <div id="findings-empty" class="inline-empty" hidden>No findings match your filters.</div>
+          </section>
+          <section id="panel-host" role="tabpanel" aria-labelledby="tab-host" hidden><div class="section-heading"><h2>Host details</h2></div><dl id="host-fields" class="host-fields"></dl></section>
+          <section id="panel-comparison" role="tabpanel" aria-labelledby="tab-comparison" hidden>
+            <div class="section-heading"><h2>Compare scans</h2></div>
+            <div class="toolbar">
+              <label class="select-label baseline-label">Baseline scan<select id="comparison-baseline"><option value="">Select an earlier scan</option></select></label>
+              <button id="older-baselines" class="icon-button" title="Load older baselines" aria-label="Load older baselines"><i data-lucide="history"></i></button>
+              <button id="compare-scans" disabled><i data-lucide="git-compare-arrows"></i>Compare</button>
+            </div>
+            <p id="comparison-error" class="error-banner" role="alert" hidden></p>
+            <div id="comparison-output" hidden>
+              <ul id="comparison-warnings" class="coverage-warning" hidden></ul>
+              <p class="inventory-note">Resolved means a risk finding is absent with compatible settings and complete coverage, not proof of remediation. No longer observed covers disappearing observations and collection gaps, not fixed risks. Incomplete evidence remains unverified.</p>
+              <div class="toolbar"><label class="select-label">Change<select id="comparison-filter"><option value="">All changes</option><option value="new">New</option><option value="resolved">Resolved risks</option><option value="changed">Changed</option><option value="unchanged">Unchanged</option><option value="newly_observed">Newly observed</option><option value="no_longer_observed">No longer observed</option><option value="unverified">Unverified</option></select></label><span id="comparison-counts" class="muted"></span></div>
+              <div id="comparison-list"></div>
+            </div>
+          </section>
+          <section id="panel-ports" role="tabpanel" aria-labelledby="tab-ports" hidden>
+            <div class="section-heading"><h2>Local socket inventory</h2><span id="port-count" class="muted"></span></div>
+            <p class="inventory-note">TCP listeners and bound UDP sockets. Service hints are port-name conventions, not verified applications. Local bindings do not establish internet reachability.</p>
+            <div class="toolbar">
+              <label class="search"><i data-lucide="search"></i><span class="sr-only">Search ports</span><input id="port-query" type="search" placeholder="Port, address, process or service" autocomplete="off"></label>
+              <label class="select-label">Protocol<select id="port-protocol"><option value="">All protocols</option><option value="tcp">TCP</option><option value="udp">UDP</option></select></label>
+              <label class="select-label">Binding<select id="port-binding"><option value="">All bindings</option><option value="loopback">Loopback</option><option value="all interfaces">All interfaces</option><option value="specific interface">Specific interface</option><option value="unknown">Unknown</option></select></label>
+            </div>
+            <div class="table-scroll"><table class="ports-table"><thead><tr><th scope="col">Port</th><th scope="col">Protocol</th><th scope="col">Local address</th><th scope="col">Binding</th><th scope="col">State</th><th scope="col">Process / PID</th><th scope="col">Service hint</th></tr></thead><tbody id="port-rows"></tbody></table></div>
+            <p id="ports-empty" class="inline-empty" hidden></p>
+          </section>
+          <section id="panel-collection" role="tabpanel" aria-labelledby="tab-collection" hidden><div class="section-heading"><h2>Collector results</h2><span class="muted">Collection status, not protection status</span></div><div id="protection-summary" class="encryption-state"></div><div id="collection-list"></div></section>
+        </div>
+      </section>
+      <footer><span><i data-lucide="lock-keyhole"></i> Local data only</span><span id="updated-at">Awaiting connection</span></footer>
+    </main>
+  </div>
+  <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+  <noscript>This dashboard requires JavaScript. The CLI remains available.</noscript>
+</body>
+</html>

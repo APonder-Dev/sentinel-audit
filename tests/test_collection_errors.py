@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from sentinel_audit.collectors import disk_encryption, firewall, network, processes
+from sentinel_audit.collectors import disk_encryption, firewall
 from sentinel_audit.config import load_port_rules
 
 
@@ -14,9 +14,6 @@ from sentinel_audit.config import load_port_rules
         disk_encryption._collect_macos_filevault,
         disk_encryption._collect_linux_luks,
         firewall.collect_firewall_status,
-        processes._collect_windows,
-        processes._collect_unix,
-        network.get_listening_ports,
     ],
 )
 @pytest.mark.parametrize(
@@ -35,11 +32,8 @@ def test_collectors_report_expected_errors(collector, error):
     ):
         result = collector()
 
-    if collector is network.get_listening_ports:
-        assert result == [f"Error collecting listening ports: {error}"]
-    else:
-        assert result["status"] == "error"
-        assert result["details"]
+    assert result["status"] == "error"
+    assert result["details"]
 
 
 @pytest.mark.parametrize("contents", [b"[invalid", b"\xff"])

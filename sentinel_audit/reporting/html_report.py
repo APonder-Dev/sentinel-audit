@@ -40,6 +40,7 @@ def _findings_rows(findings: list[dict]) -> str:
             f"<tr>"
             f"<td>{_severity_badge(severity)}</td>"
             f"<td><strong>{_e(f.get('title', ''))}</strong><br>"
+            f"<small>{_e(f.get('id', 'Legacy finding'))}</small><br>"
             f"<small style='color:#555;'>{_e(f.get('description', ''))}</small></td>"
             f"<td style='color:#333;font-size:0.9em;'>{_e(f.get('recommendation', ''))}</td>"
             f"</tr>"
@@ -65,10 +66,7 @@ def _listening_ports_html(ports: list[str]) -> str:
     return f'<pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:6px;overflow-x:auto;font-size:0.82em;margin:0;">{escaped}</pre>'
 
 
-def save_html_report(data: dict, output_path: str) -> None:
-    path = Path(output_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-
+def render_html_report(data: dict) -> str:
     system      = data.get("system_info", {})
     network     = data.get("network_info", {})
     firewall    = data.get("firewall_status", {})
@@ -76,6 +74,9 @@ def save_html_report(data: dict, output_path: str) -> None:
     disk        = data.get("disk_encryption", {})
     findings    = data.get("findings", [])
     risk_score  = data.get("risk_score", {})
+    coverage = data.get("coverage", {})
+    protection = disk.get("protection_active")
+    protection_label = "On" if protection is True else "Off / suspended" if protection is False else "Unknown / not recorded"
 
     score = risk_score.get("score", "N/A")
     label = risk_score.get("label", "Unknown")
@@ -150,6 +151,14 @@ def save_html_report(data: dict, output_path: str) -> None:
 </header>
 
 <main>
+  <section>
+    <h2>Assessment Context</h2>
+    <p>Scan: {_e(data.get('scan', {}).get('id', 'CLI scan'))}</p>
+    <p>Mode: {_e(data.get('scan', {}).get('mode', data.get('execution', {}).get('mode', 'standard')))}</p>
+    <p>Sanitized: {_e(data.get('sanitized', False))}</p>
+    <p>Coverage: {_e(coverage.get('collected', 'Unknown'))} / 5 checks collected.
+    {_e('Incomplete assessment; score is provisional.' if not coverage.get('complete') else 'Collection complete; not a security guarantee.')}</p>
+  </section>
   <div class="summary-grid">
     <div class="card">
       <div class="label">High Findings</div>
@@ -231,6 +240,8 @@ def save_html_report(data: dict, output_path: str) -> None:
       <span class="key">Encrypted</span>
       <span class="val" style="color:{enc_color};font-weight:600;">{encrypted_label}</span>
     </div>
+    <div class="info-row"><span class="key">Active protection</span><span class="val">{_e(protection_label)}</span></div>
+    <p>Encrypted data and active key protection are separate states.</p>
     <pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:6px;overflow-x:auto;font-size:0.82em;white-space:pre-wrap;">{_e(disk.get('details',''))}</pre>
   </section>
 
@@ -247,5 +258,10 @@ def save_html_report(data: dict, output_path: str) -> None:
 </body>
 </html>"""
 
-    with path.open("w", encoding="utf-8") as f:
-        f.write(html_content)
+    return html_content
+
+
+def save_html_report(data: dict, output_path: str) -> None:
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(render_html_report(data), encoding="utf-8")
